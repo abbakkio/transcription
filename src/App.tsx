@@ -5,9 +5,11 @@ import { AudioPlayerCard } from './components/AudioPlayer/AudioPlayerCard'
 import { TranscriptViewer } from './components/TranscriptViewer/TranscriptViewer'
 import { BatchProgressBar } from './components/BatchProgress/BatchProgressBar'
 import { BatchDropzoneModal } from './components/BatchDropzone/BatchDropzoneModal'
+import { NotificationToast, type ToastMessage } from './components/Notification/NotificationToast'
 import { INITIAL_BATCH_FILES, SAMPLE_TRANSCRIPT_1 } from './data/sampleTranscript'
 import { exportAllTranscriptsAsZip } from './utils/exportZip'
 import type { AudioFileItem } from './types/transcription'
+import type { ScanResult } from './utils/folderScanner'
 
 export default function App() {
   const [files, setFiles] = useState<AudioFileItem[]>(INITIAL_BATCH_FILES)
@@ -17,6 +19,8 @@ export default function App() {
   const [currentFileIndex, setCurrentFileIndex] = useState(0)
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [seekTarget, setSeekTarget] = useState<{ seconds: number; timestamp: number } | null>(null)
+  const [toastMessage, setToastMessage] = useState<ToastMessage | null>(null)
+  const toastIdRef = useRef(0)
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -58,8 +62,46 @@ export default function App() {
     setActiveFileId(INITIAL_BATCH_FILES[0].id)
   }
 
-  const handleAddBatchFiles = (newFiles: File[]) => {
-    if (newFiles.length === 0) return
+  const handleAddBatchFiles = (newFiles: File[], scanInfo?: ScanResult) => {
+    if (newFiles.length === 0) {
+      if (scanInfo && scanInfo.skippedCount > 0) {
+        toastIdRef.current += 1
+        setToastMessage({
+          id: `toast-${toastIdRef.current}`,
+          title: 'Аудиофайлы не найдены',
+          detail: `Пропущено неаудио-файлов: ${scanInfo.skippedCount} (изображения, документы и др.)`,
+          type: 'warning',
+        })
+      }
+      return
+    }
+
+    if (scanInfo?.skippedCount) {
+      const folderHint = scanInfo.folderNames.length > 0 ? ` из папки "${scanInfo.folderNames[0]}"` : ''
+      toastIdRef.current += 1
+      setToastMessage({
+        id: `toast-${toastIdRef.current}`,
+        title: `Добавлено аудиозаписей: ${newFiles.length}${folderHint}`,
+        detail: `Пропущено неаудио-файлов: ${scanInfo.skippedCount} (PDF, фото и др.)`,
+        type: 'success',
+      })
+    } else if (scanInfo?.folderNames.length) {
+      toastIdRef.current += 1
+      setToastMessage({
+        id: `toast-${toastIdRef.current}`,
+        title: `Импортирована папка "${scanInfo.folderNames[0]}"`,
+        detail: `Успешно добавлено аудиозаписей: ${newFiles.length}`,
+        type: 'success',
+      })
+    } else if (newFiles.length > 1) {
+      toastIdRef.current += 1
+      setToastMessage({
+        id: `toast-${toastIdRef.current}`,
+        title: 'Пакетный импорт завершен',
+        detail: `Добавлено аудиозаписей: ${newFiles.length}`,
+        type: 'info',
+      })
+    }
 
     const newItems: AudioFileItem[] = newFiles.map((file, idx) => ({
       id: `file-custom-${Date.now()}-${idx}`,
@@ -199,6 +241,11 @@ export default function App() {
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         onAddFiles={handleAddBatchFiles}
+      />
+
+      <NotificationToast
+        message={toastMessage}
+        onDismiss={() => setToastMessage(null)}
       />
     </div>
   )

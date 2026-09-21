@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
-import { ArrowUpTrayIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { ArrowUpTrayIcon, XMarkIcon, InformationCircleIcon } from '@heroicons/react/24/outline'
 import { isValidAudioFile } from '../../utils/audioFiles'
+import { scanDroppedItems } from '../../utils/folderScanner'
 
 interface BatchDropzoneModalProps {
   isOpen: boolean
@@ -15,6 +16,8 @@ export function BatchDropzoneModal({
 }: BatchDropzoneModalProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [isDragging, setIsDragging] = useState(false)
+  const [isScanning, setIsScanning] = useState(false)
+  const [scanNotice, setScanNotice] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -39,22 +42,41 @@ export function BatchDropzoneModal({
     setIsDragging(false)
   }
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const validFiles = Array.from(e.dataTransfer.files).filter(isValidAudioFile)
-      if (validFiles.length > 0) {
-        setSelectedFiles((prev) => [...prev, ...validFiles])
+    setIsScanning(true)
+
+    try {
+      const result = await scanDroppedItems(e.dataTransfer)
+      if (result.audioFiles.length > 0) {
+        setSelectedFiles((prev) => [...prev, ...result.audioFiles])
       }
+      if (result.skippedCount > 0) {
+        setScanNotice(
+          `Найдено аудио: ${result.audioFiles.length}. Пропущено неаудио файлов: ${result.skippedCount}.`,
+        )
+      } else {
+        setScanNotice(null)
+      }
+    } finally {
+      setIsScanning(false)
     }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const validFiles = Array.from(e.target.files).filter(isValidAudioFile)
+      const files = Array.from(e.target.files)
+      const validFiles = files.filter(isValidAudioFile)
+      const skipped = files.length - validFiles.length
+
       if (validFiles.length > 0) {
         setSelectedFiles((prev) => [...prev, ...validFiles])
+      }
+      if (skipped > 0) {
+        setScanNotice(`Найдено аудио: ${validFiles.length}. Пропущено неаудио файлов: ${skipped}.`)
+      } else {
+        setScanNotice(null)
       }
       e.target.value = ''
     }
@@ -68,6 +90,7 @@ export function BatchDropzoneModal({
     if (selectedFiles.length > 0) {
       onAddFiles(selectedFiles)
       setSelectedFiles([])
+      setScanNotice(null)
       onClose()
     }
   }
@@ -90,10 +113,10 @@ export function BatchDropzoneModal({
         <div className="flex items-center justify-between pb-3.5 border-b border-neutral-100">
           <div>
             <h2 id="upload-modal-title" className="font-semibold text-neutral-900 text-base">
-              Загрузка аудиофайлов
+              Загрузка аудиофайлов и папок
             </h2>
             <p className="text-xs text-neutral-500 mt-0.5">
-              Выберите один или несколько файлов для транскрибации
+              Выберите файлы или перетащите целую папку с записями
             </p>
           </div>
 
@@ -127,23 +150,45 @@ export function BatchDropzoneModal({
             className="hidden"
           />
           <div className="w-12 h-12 rounded-full bg-neutral-100 text-neutral-700 flex items-center justify-center mx-auto mb-3">
-            <ArrowUpTrayIcon className="w-6 h-6 stroke-[1.8]" />
+            {isScanning ? (
+              <svg className="w-6 h-6 animate-spin text-neutral-900" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+            ) : (
+              <ArrowUpTrayIcon className="w-6 h-6 stroke-[1.8]" />
+            )}
           </div>
           <p className="text-sm font-semibold text-neutral-800">
-            Перетащите аудиофайлы сюда
+            {isScanning ? 'Сканирование директорий...' : 'Перетащите аудиофайлы или папки сюда'}
           </p>
           <p className="text-xs text-neutral-500 mt-1">
             или <span className="text-neutral-900 font-semibold underline underline-offset-2">выберите файлы на диске</span>
           </p>
           <p className="text-[11px] text-neutral-400 mt-2">
-            Поддерживаются MP3, WAV, M4A, OGG, FLAC (до 250 МБ)
+            Поддерживаются MP3, WAV, M4A, OGG, FLAC (файлы и папки до 250 МБ)
           </p>
         </div>
+
+        {scanNotice && (
+          <div className="mt-3 p-2.5 rounded-xl bg-neutral-100/90 text-neutral-700 text-xs flex items-center gap-2">
+            <InformationCircleIcon className="w-4 h-4 text-neutral-500 shrink-0" />
+            <span className="flex-1">{scanNotice}</span>
+            <button
+              type="button"
+              onClick={() => setScanNotice(null)}
+              className="text-neutral-400 hover:text-neutral-600 p-0.5"
+              aria-label="Скрыть подсказку"
+            >
+              <XMarkIcon className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
 
         {selectedFiles.length > 0 && (
           <div className="mt-4 flex-1 overflow-y-auto max-h-48 space-y-2 pr-1">
             <p className="text-xs font-semibold text-neutral-700">
-              Выбрано файлов: {selectedFiles.length}
+              Выбрано аудиозаписей: {selectedFiles.length}
             </p>
             {selectedFiles.map((f, idx) => (
               <div
@@ -152,7 +197,7 @@ export function BatchDropzoneModal({
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="font-mono text-neutral-400">{idx + 1}.</span>
-                  <span className="font-medium text-neutral-800 truncate max-w-[220px]">
+                  <span className="font-medium text-neutral-800 truncate max-w-[220px]" title={f.name}>
                     {f.name}
                   </span>
                   <span className="text-[11px] text-neutral-400 shrink-0">
