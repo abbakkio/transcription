@@ -42,6 +42,7 @@ export function NotificationToast({
     <div
       role="status"
       aria-live="polite"
+      aria-label="Уведомление"
       className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 max-w-sm w-full bg-white rounded-2xl border border-neutral-200/90 shadow-xl p-3.5 sm:p-4 flex items-start gap-3 animate-in fade-in slide-in-from-bottom-3 duration-200"
     >
       <div className="shrink-0 mt-0.5">
