@@ -4,6 +4,7 @@ import {
   PlusIcon,
 } from '@heroicons/react/24/outline'
 import type { AudioFileItem } from '../../types/transcription'
+import type { ScanResult } from '../../utils/folderScanner'
 import { FileTableRow } from './FileTableRow'
 import { CompactDropZone } from './CompactDropZone'
 
@@ -13,7 +14,7 @@ export interface FileSelectorProps {
   onSelectFile: (id: string) => void
   onExportZip: () => void
   onAddFilesClick: () => void
-  onDirectDropFiles?: (files: File[]) => void
+  onDirectDropFiles?: (files: File[], scanInfo?: ScanResult) => void
   onRemoveFile: (id: string) => void
 }
 
@@ -28,9 +29,9 @@ export function FileSelector({
 }: FileSelectorProps) {
   const completedCount = files.filter((f) => f.status === 'completed').length
 
-  const handleDropFiles = (droppedFiles: File[]) => {
+  const handleDropFiles = (droppedFiles: File[], scanInfo?: ScanResult) => {
     if (onDirectDropFiles) {
-      onDirectDropFiles(droppedFiles)
+      onDirectDropFiles(droppedFiles, scanInfo)
     } else {
       onAddFilesClick()
     }
