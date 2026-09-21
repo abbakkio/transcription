@@ -1,0 +1,145 @@
+import type { AudioFileItem, TranscriptSegment } from '../types/transcription'
+
+export const SAMPLE_TRANSCRIPT_1: TranscriptSegment[] = [
+  {
+    id: 1,
+    lang: 'RU',
+    time: '00:00 – 00:24',
+    startSeconds: 0,
+    endSeconds: 24,
+    text: 'Лорем ипсум сияқты, бірақ мұнда каждый абзац казахский және русский сөздермен кезектесіп отырады. Негізінен бұл демонстрациялық мәтін, чтобы проверить как выглядит интерфейс.',
+  },
+  {
+    id: 2,
+    lang: 'KZ',
+    time: '00:25 – 00:58',
+    startSeconds: 25,
+    endSeconds: 58,
+    text: 'Жалпы алғанда, біздің жүйеде любой аудиофайл өңделген кезде осындай аралас сөйлемдерді легко танып алады. Өйткені күнделікті өмірде люди часто говорят на двух языках одновременно.',
+  },
+  {
+    id: 3,
+    lang: 'RU',
+    time: '00:59 – 01:42',
+    startSeconds: 59,
+    endSeconds: 102,
+    text: 'Мысалы, бұл фрагментте де кейбір фразалар орысша, ал қалған бөлігі қазақ тілінде жалғасады. Сондықтан алгоритм точно определяет границы слов, паузы мен интонацияны дұрыс сақтайды.',
+  },
+  {
+    id: 4,
+    lang: 'KZ',
+    time: '01:43 – 02:20',
+    startSeconds: 103,
+    endSeconds: 140,
+    text: 'Енді келесі бөлімге назар аударсақ, мұнда да уақыт белгілері, то есть таймкоды, әрбір сөйлемнің басында очень аккуратно көрсетіліп тұр. Осылайша тыңдаушыға керекті жерді табу өте ыңғайлы.',
+  },
+  {
+    id: 5,
+    lang: 'RU',
+    time: '02:21 – 03:10',
+    startSeconds: 141,
+    endSeconds: 190,
+    text: 'Бұл жерде тағы да бірнеше тестовые предложения қосайық. Көріп отырғанымыздай, мәтін көлемі достаточно длинный, чтобы можно было проверить прокрутку скролла және градиенттерді.',
+  },
+  {
+    id: 6,
+    lang: 'KZ',
+    time: '03:11 – 03:45',
+    startSeconds: 191,
+    endSeconds: 225,
+    text: 'Сонымен қорытындылай келе, осы үлгілік мәтін арқылы барлық функцияларды, соның ішінде көшіруді және скачивание в текстовый файл форматында толық тексеруге болады.',
+  },
+]
+
+export const SAMPLE_TRANSCRIPT_KZ: TranscriptSegment[] = [
+  {
+    id: 1,
+    lang: 'KZ',
+    time: '00:00 – 00:30',
+    startSeconds: 0,
+    endSeconds: 30,
+    text: 'Бүгінгі тақырыбымыз, так сказать, цифрлық технологиялар мен жасанды интеллект туралы болмақ. Бұл салада қазіргі уақытта очень много интересных разработок пайда болып жатыр.',
+  },
+  {
+    id: 2,
+    lang: 'KZ',
+    time: '00:31 – 01:15',
+    startSeconds: 31,
+    endSeconds: 75,
+    text: 'Әрине, біздің басты мақсат — это предоставить качественный сервис для каждого пользователя. Сондықтан дыбысты тану жылдамдығы мен дәлдігін үнемі повышать ету қажет.',
+  },
+  {
+    id: 3,
+    lang: 'KZ',
+    time: '01:16 – 02:10',
+    startSeconds: 76,
+    endSeconds: 130,
+    text: 'Сол себепті бұл мысалда да қазақша және орысша сөздер вперемешку кездеседі. Мұндай мәтіндер арқылы жүйенің нақты жұмысын наглядно көруге мүмкіндік бар.',
+  },
+]
+
+export const SAMPLE_TRANSCRIPT_RU: TranscriptSegment[] = [
+  {
+    id: 1,
+    lang: 'RU',
+    time: '00:00 – 00:40',
+    startSeconds: 0,
+    endSeconds: 40,
+    text: 'Коллеги, бүгінгі жиналыстың негізгі тақырыбы — это обсуждение текущих задач по проекту. Давайте сначала разберем, қандай нәтижелерге қол жеткіздік.',
+  },
+  {
+    id: 2,
+    lang: 'RU',
+    time: '00:41 – 01:25',
+    startSeconds: 41,
+    endSeconds: 85,
+    text: 'По второму вопросу, яғни интерфейс пен дизайн бөлімінде, барлық элементтер минималистично және очень удобно жасалды. Жаңа батырмалар мен иконкалар отлично смотрятся.',
+  },
+  {
+    id: 3,
+    lang: 'RU',
+    time: '01:26 – 02:05',
+    startSeconds: 86,
+    endSeconds: 125,
+    text: 'Жақсы, онда келесі кезеңде біз функционалды еще раз проверим. Барлық файлдарды архив түрінде выгрузить ету мүмкіндігі де без проблем жұмыс істеп тұр.',
+  },
+]
+
+export const INITIAL_BATCH_FILES: AudioFileItem[] = [
+  {
+    id: 'file-1',
+    name: '1.mp3',
+    size: '4.2 МБ',
+    duration: '03:45',
+    durationSeconds: 225,
+    status: 'completed',
+    progress: 100,
+    detectedLanguage: 'KZ/RU',
+    segments: SAMPLE_TRANSCRIPT_1,
+    rawText: SAMPLE_TRANSCRIPT_1.map((s) => s.text).join('\n\n'),
+  },
+  {
+    id: 'file-2',
+    name: 'interviu_astana.mp3',
+    size: '2.8 МБ',
+    duration: '02:10',
+    durationSeconds: 130,
+    status: 'completed',
+    progress: 100,
+    detectedLanguage: 'KZ',
+    segments: SAMPLE_TRANSCRIPT_KZ,
+    rawText: SAMPLE_TRANSCRIPT_KZ.map((s) => s.text).join('\n\n'),
+  },
+  {
+    id: 'file-3',
+    name: 'soveshchanie_almaty.wav',
+    size: '5.6 МБ',
+    duration: '02:05',
+    durationSeconds: 125,
+    status: 'completed',
+    progress: 100,
+    detectedLanguage: 'RU',
+    segments: SAMPLE_TRANSCRIPT_RU,
+    rawText: SAMPLE_TRANSCRIPT_RU.map((s) => s.text).join('\n\n'),
+  },
+]
