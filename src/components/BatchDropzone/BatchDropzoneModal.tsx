@@ -1,12 +1,21 @@
 import { useState, useRef, useEffect } from 'react'
-import { ArrowUpTrayIcon, XMarkIcon, InformationCircleIcon } from '@heroicons/react/24/outline'
+import {
+  ArrowUpTrayIcon,
+  XMarkIcon,
+  InformationCircleIcon,
+  LanguageIcon,
+} from '@heroicons/react/24/outline'
 import { isValidAudioFile } from '../../utils/audioFiles'
 import { scanDroppedItems } from '../../utils/folderScanner'
+import {
+  type TranscriptionLanguage,
+  TRANSCRIPTION_LANGUAGES,
+} from '../../types/transcription'
 
 interface BatchDropzoneModalProps {
   isOpen: boolean
   onClose: () => void
-  onAddFiles: (files: File[]) => void
+  onAddFiles: (files: File[], language?: TranscriptionLanguage) => void
 }
 
 export function BatchDropzoneModal({
@@ -15,6 +24,7 @@ export function BatchDropzoneModal({
   onAddFiles,
 }: BatchDropzoneModalProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [selectedLanguage, setSelectedLanguage] = useState<TranscriptionLanguage>('auto')
   const [isDragging, setIsDragging] = useState(false)
   const [isScanning, setIsScanning] = useState(false)
   const [scanNotice, setScanNotice] = useState<string | null>(null)
@@ -88,8 +98,9 @@ export function BatchDropzoneModal({
 
   const handleSubmit = () => {
     if (selectedFiles.length > 0) {
-      onAddFiles(selectedFiles)
+      onAddFiles(selectedFiles, selectedLanguage)
       setSelectedFiles([])
+      setSelectedLanguage('auto')
       setScanNotice(null)
       onClose()
     }
@@ -219,6 +230,41 @@ export function BatchDropzoneModal({
             ))}
           </div>
         )}
+
+        <div className="mt-4 pt-3.5 border-t border-neutral-100">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-neutral-800 flex items-center gap-1.5">
+              <LanguageIcon className="w-4 h-4 text-neutral-500" />
+              Язык для распознавания
+            </span>
+            <span className="text-[11px] text-neutral-400">
+              {selectedLanguage === 'auto' ? 'Автоопределение модели' : 'Фиксированный язык'}
+            </span>
+          </div>
+
+          <div
+            role="radiogroup"
+            aria-label="Выбор языка распознавания"
+            className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 bg-neutral-100/90 rounded-xl border border-neutral-200/60"
+          >
+            {TRANSCRIPTION_LANGUAGES.map((lang) => (
+              <button
+                key={lang.code}
+                type="button"
+                role="radio"
+                aria-checked={selectedLanguage === lang.code}
+                onClick={() => setSelectedLanguage(lang.code)}
+                className={`py-1.5 px-2 rounded-lg text-xs font-medium transition-all text-center select-none cursor-pointer ${
+                  selectedLanguage === lang.code
+                    ? 'bg-white text-neutral-900 font-semibold shadow-2xs border border-neutral-200/60'
+                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/60 border border-transparent'
+                }`}
+              >
+                <span className="block truncate">{lang.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="mt-5 pt-3.5 border-t border-neutral-100 flex items-center justify-end gap-2.5">
           <button

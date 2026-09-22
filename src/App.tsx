@@ -6,9 +6,15 @@ import { TranscriptViewer } from './components/TranscriptViewer/TranscriptViewer
 import { BatchProgressBar } from './components/BatchProgress/BatchProgressBar'
 import { BatchDropzoneModal } from './components/BatchDropzone/BatchDropzoneModal'
 import { NotificationToast, type ToastMessage } from './components/Notification/NotificationToast'
-import { INITIAL_BATCH_FILES, SAMPLE_TRANSCRIPT_1 } from './data/sampleTranscript'
+import {
+  INITIAL_BATCH_FILES,
+  SAMPLE_TRANSCRIPT_1,
+  SAMPLE_TRANSCRIPT_KZ,
+  SAMPLE_TRANSCRIPT_RU,
+  SAMPLE_TRANSCRIPT_EN,
+} from './data/sampleTranscript'
 import { exportAllTranscriptsAsZip } from './utils/exportZip'
-import type { AudioFileItem } from './types/transcription'
+import type { AudioFileItem, TranscriptionLanguage } from './types/transcription'
 import type { ScanResult } from './utils/folderScanner'
 
 export default function App() {
@@ -62,7 +68,11 @@ export default function App() {
     setActiveFileId(INITIAL_BATCH_FILES[0].id)
   }
 
-  const handleAddBatchFiles = (newFiles: File[], scanInfo?: ScanResult) => {
+  const handleAddBatchFiles = (
+    newFiles: File[],
+    scanInfo?: ScanResult,
+    defaultLanguage: TranscriptionLanguage = 'auto',
+  ) => {
     if (newFiles.length === 0) {
       if (scanInfo && scanInfo.skippedCount > 0) {
         toastIdRef.current += 1
@@ -76,12 +86,20 @@ export default function App() {
       return
     }
 
+    const langLabelMap: Record<TranscriptionLanguage, string> = {
+      auto: 'Авто',
+      kk: 'Қазақша',
+      ru: 'Русский',
+      en: 'English',
+    }
+    const langNotice = defaultLanguage !== 'auto' ? ` • Язык: ${langLabelMap[defaultLanguage]}` : ''
+
     if (scanInfo?.skippedCount) {
       const folderHint = scanInfo.folderNames.length > 0 ? ` из папки "${scanInfo.folderNames[0]}"` : ''
       toastIdRef.current += 1
       setToastMessage({
         id: `toast-${toastIdRef.current}`,
-        title: `Добавлено аудиозаписей: ${newFiles.length}${folderHint}`,
+        title: `Добавлено аудиозаписей: ${newFiles.length}${folderHint}${langNotice}`,
         detail: `Пропущено неаудио-файлов: ${scanInfo.skippedCount} (PDF, фото и др.)`,
         type: 'success',
       })
@@ -89,7 +107,7 @@ export default function App() {
       toastIdRef.current += 1
       setToastMessage({
         id: `toast-${toastIdRef.current}`,
-        title: `Импортирована папка "${scanInfo.folderNames[0]}"`,
+        title: `Импортирована папка "${scanInfo.folderNames[0]}"${langNotice}`,
         detail: `Успешно добавлено аудиозаписей: ${newFiles.length}`,
         type: 'success',
       })
@@ -97,11 +115,29 @@ export default function App() {
       toastIdRef.current += 1
       setToastMessage({
         id: `toast-${toastIdRef.current}`,
-        title: 'Пакетный импорт завершен',
+        title: `Пакетный импорт завершен${langNotice}`,
         detail: `Добавлено аудиозаписей: ${newFiles.length}`,
         type: 'info',
       })
     }
+
+    const initialSegments =
+      defaultLanguage === 'kk'
+        ? SAMPLE_TRANSCRIPT_KZ
+        : defaultLanguage === 'ru'
+          ? SAMPLE_TRANSCRIPT_RU
+          : defaultLanguage === 'en'
+            ? SAMPLE_TRANSCRIPT_EN
+            : SAMPLE_TRANSCRIPT_1
+
+    const detected =
+      defaultLanguage === 'kk'
+        ? 'KZ'
+        : defaultLanguage === 'ru'
+          ? 'RU'
+          : defaultLanguage === 'en'
+            ? 'EN'
+            : 'KZ/RU'
 
     const newItems: AudioFileItem[] = newFiles.map((file, idx) => ({
       id: `file-custom-${Date.now()}-${idx}`,
@@ -111,12 +147,12 @@ export default function App() {
       durationSeconds: 150,
       status: 'pending',
       progress: 0,
-      language: 'auto',
-      detectedLanguage: 'KZ/RU',
+      language: defaultLanguage,
+      detectedLanguage: detected,
       audioUrl: URL.createObjectURL(file),
       file,
-      segments: SAMPLE_TRANSCRIPT_1,
-      rawText: SAMPLE_TRANSCRIPT_1.map((s) => s.text).join('\n\n'),
+      segments: initialSegments,
+      rawText: initialSegments.map((s) => s.text).join('\n\n'),
     }))
 
     const updatedList = [...files, ...newItems]
@@ -241,7 +277,7 @@ export default function App() {
       <BatchDropzoneModal
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
-        onAddFiles={handleAddBatchFiles}
+        onAddFiles={(newFiles, lang) => handleAddBatchFiles(newFiles, undefined, lang)}
       />
 
       <NotificationToast
