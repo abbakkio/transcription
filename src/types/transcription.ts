@@ -12,25 +12,25 @@ export const TRANSCRIPTION_LANGUAGES: LanguageOption[] = [
     code: 'auto',
     label: 'Авто',
     shortLabel: 'Авто',
-    badgeClass: 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200/80 border-neutral-200',
+    badgeClass: 'bg-white text-neutral-800 hover:bg-neutral-100/80 border-neutral-400 hover:border-neutral-600 shadow-2xs',
   },
   {
     code: 'ru',
     label: 'Русский',
     shortLabel: 'Русский',
-    badgeClass: 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-200',
+    badgeClass: 'bg-white text-neutral-800 hover:bg-neutral-100/80 border-neutral-400 hover:border-neutral-600 shadow-2xs',
   },
   {
     code: 'kk',
     label: 'Казахский',
     shortLabel: 'Казахский',
-    badgeClass: 'bg-sky-50 text-sky-700 hover:bg-sky-100 border-sky-200',
+    badgeClass: 'bg-white text-neutral-800 hover:bg-neutral-100/80 border-neutral-400 hover:border-neutral-600 shadow-2xs',
   },
   {
     code: 'en',
     label: 'Английский',
     shortLabel: 'Английский',
-    badgeClass: 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200',
+    badgeClass: 'bg-white text-neutral-800 hover:bg-neutral-100/80 border-neutral-400 hover:border-neutral-600 shadow-2xs',
   },
 ]
 

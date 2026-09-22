@@ -256,7 +256,7 @@ export function BatchDropzoneModal({
                 onClick={() => setSelectedLanguage(lang.code)}
                 className={`py-1.5 px-2 rounded-lg text-xs font-medium transition-all text-center select-none cursor-pointer ${
                   selectedLanguage === lang.code
-                    ? 'bg-white text-neutral-900 font-semibold shadow-2xs border border-neutral-200/60'
+                    ? 'bg-white text-neutral-900 font-semibold shadow-2xs border border-neutral-400'
                     : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/60 border border-transparent'
                 }`}
               >

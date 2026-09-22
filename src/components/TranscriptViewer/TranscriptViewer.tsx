@@ -80,7 +80,7 @@ export function TranscriptViewer({
               </span>
               <span className="text-[10px] text-neutral-300">•</span>
               <span
-                className="text-[10px] px-1.5 py-0.5 rounded font-medium border bg-neutral-50 text-neutral-600 border-neutral-200"
+                className="text-[10px] px-1.5 py-0.5 rounded font-medium border bg-white text-neutral-800 border-neutral-400 shadow-2xs"
                 title={`Язык распознавания модели: ${TRANSCRIPTION_LANGUAGES.find((l) => l.code === file.language)?.label ?? 'Авто'}`}
               >
                 {TRANSCRIPTION_LANGUAGES.find((l) => l.code === file.language)?.shortLabel ?? 'Авто'}

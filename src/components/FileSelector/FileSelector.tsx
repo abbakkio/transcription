@@ -93,11 +93,11 @@ export function FileSelector({
       <div
         role="table"
         aria-label="Таблица аудиофайлов транскрибации"
-        className="w-full rounded-xl border border-neutral-200/90 overflow-hidden bg-white shadow-2xs"
+        className="w-full rounded-xl border border-neutral-200/90 bg-white shadow-2xs relative"
       >
         <div
           role="row"
-          className="hidden sm:grid sm:grid-cols-12 gap-4 px-4 py-2.5 text-[11px] font-semibold text-neutral-400 uppercase tracking-wider border-b border-neutral-100 bg-neutral-50/70 border-l-4 border-l-transparent"
+          className="hidden sm:grid sm:grid-cols-12 gap-4 px-4 py-2.5 text-[11px] font-semibold text-neutral-400 uppercase tracking-wider border-b border-neutral-100 bg-neutral-50/70 rounded-t-xl border-l-4 border-l-transparent"
         >
           <div role="columnheader" className="col-span-5">Аудиозапись</div>
           <div role="columnheader" className="col-span-2">Длительность</div>
@@ -107,12 +107,13 @@ export function FileSelector({
         </div>
 
         <div role="rowgroup" className="divide-y divide-neutral-100">
-          {files.map((file) => (
+          {files.map((file, index) => (
             <FileTableRow
               key={file.id}
               file={file}
               isActive={file.id === activeFileId}
               canRemove={true}
+              isLastRow={index === files.length - 1}
               onSelect={onSelectFile}
               onRemove={onRemoveFile}
               onChangeLanguage={onChangeLanguage}

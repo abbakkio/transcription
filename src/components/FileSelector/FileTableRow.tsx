@@ -19,6 +19,7 @@ interface FileTableRowProps {
   file: AudioFileItem
   isActive: boolean
   canRemove: boolean
+  isLastRow?: boolean
   onSelect: (id: string) => void
   onRemove: (id: string) => void
   onChangeLanguage?: (id: string, language: TranscriptionLanguage) => void
@@ -32,23 +33,52 @@ function LanguageBadge({
   language,
   onChange,
   disabled,
+  onOpenChange,
+  isLastRow,
 }: {
   language: TranscriptionLanguage
   onChange?: (lang: TranscriptionLanguage) => void
   disabled?: boolean
+  onOpenChange?: (open: boolean) => void
+  isLastRow?: boolean
 }) {
   const [isOpen, setIsOpen] = useState(false)
+  const [openUpward, setOpenUpward] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (disabled) return
+
+    if (!isOpen) {
+      if (isLastRow) {
+        setOpenUpward(true)
+      } else if (menuRef.current) {
+        const rect = menuRef.current.getBoundingClientRect()
+        const spaceBelow = window.innerHeight - rect.bottom
+        setOpenUpward(spaceBelow < 200)
+      }
+      setIsOpen(true)
+      onOpenChange?.(true)
+    } else {
+      setIsOpen(false)
+      onOpenChange?.(false)
+    }
+  }
 
   useEffect(() => {
     if (!isOpen) return
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setIsOpen(false)
+        onOpenChange?.(false)
       }
     }
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsOpen(false)
+      if (e.key === 'Escape') {
+        setIsOpen(false)
+        onOpenChange?.(false)
+      }
     }
     document.addEventListener('mousedown', handleClickOutside)
     document.addEventListener('keydown', handleKeyDown)
@@ -56,21 +86,18 @@ function LanguageBadge({
       document.removeEventListener('mousedown', handleClickOutside)
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isOpen])
+  }, [isOpen, onOpenChange])
 
   const currentOption =
     TRANSCRIPTION_LANGUAGES.find((l) => l.code === language) ?? TRANSCRIPTION_LANGUAGES[0]
 
   return (
-    <div className="relative inline-block text-left" ref={menuRef}>
+    <div className={`relative inline-block text-left ${isOpen ? 'z-50' : 'z-10'}`} ref={menuRef}>
       <button
         type="button"
         disabled={disabled}
-        onClick={(e) => {
-          e.stopPropagation()
-          if (!disabled) setIsOpen((prev) => !prev)
-        }}
-        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border transition-all cursor-pointer select-none ${currentOption.badgeClass} disabled:opacity-50 disabled:cursor-not-allowed`}
+        onClick={handleToggle}
+        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-semibold border transition-all cursor-pointer select-none ${currentOption.badgeClass} disabled:opacity-50 disabled:cursor-not-allowed`}
         title={`Язык модели: ${currentOption.label}. Нажмите для смены`}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
@@ -83,7 +110,9 @@ function LanguageBadge({
         <div
           role="listbox"
           aria-label="Выберите язык"
-          className="absolute left-0 mt-1 w-44 rounded-xl bg-white border border-neutral-200/90 shadow-lg py-1 z-30 animate-in fade-in"
+          className={`absolute left-0 w-44 rounded-xl bg-white border border-neutral-200 shadow-xl py-1 z-50 animate-in fade-in ${
+            openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+          }`}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="px-2.5 py-1 text-[10px] font-semibold text-neutral-400 uppercase tracking-wider border-b border-neutral-100">
@@ -98,6 +127,7 @@ function LanguageBadge({
               onClick={() => {
                 onChange?.(opt.code)
                 setIsOpen(false)
+                onOpenChange?.(false)
               }}
               className={`w-full flex items-center justify-between px-2.5 py-1.5 text-xs text-left transition-colors cursor-pointer ${
                 opt.code === language
@@ -191,11 +221,14 @@ export function FileTableRow({
   file,
   isActive,
   canRemove,
+  isLastRow,
   onSelect,
   onRemove,
   onChangeLanguage,
   onRetranscribe,
 }: FileTableRowProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+
   return (
     <div
       role="row"
@@ -208,7 +241,9 @@ export function FileTableRow({
           onSelect(file.id)
         }
       }}
-      className={`group w-full transition-all cursor-pointer select-none text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 border-b border-neutral-100 last:border-b-0 ${
+      className={`group w-full transition-all cursor-pointer select-none text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 border-b border-neutral-100 last:border-b-0 first:rounded-t-xl last:rounded-b-xl relative ${
+        isMenuOpen ? 'z-40' : 'z-0'
+      } ${
         isActive
           ? 'bg-neutral-900/[0.04] font-medium border-l-4 border-l-neutral-900'
           : 'hover:bg-neutral-50/80 border-l-4 border-l-transparent bg-white'
@@ -248,6 +283,8 @@ export function FileTableRow({
             language={file.language}
             onChange={(newLang) => onChangeLanguage?.(file.id, newLang)}
             disabled={file.status === 'processing'}
+            isLastRow={isLastRow}
+            onOpenChange={setIsMenuOpen}
           />
         </div>
 
@@ -334,6 +371,8 @@ export function FileTableRow({
               language={file.language}
               onChange={(newLang) => onChangeLanguage?.(file.id, newLang)}
               disabled={file.status === 'processing'}
+              isLastRow={isLastRow}
+              onOpenChange={setIsMenuOpen}
             />
             {file.status === 'completed' && onRetranscribe && (
               <button
