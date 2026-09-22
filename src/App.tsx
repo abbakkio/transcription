@@ -111,6 +111,7 @@ export default function App() {
       durationSeconds: 150,
       status: 'pending',
       progress: 0,
+      language: 'auto',
       detectedLanguage: 'KZ/RU',
       audioUrl: URL.createObjectURL(file),
       file,

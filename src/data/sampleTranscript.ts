@@ -105,6 +105,33 @@ export const SAMPLE_TRANSCRIPT_RU: TranscriptSegment[] = [
   },
 ]
 
+export const SAMPLE_TRANSCRIPT_EN: TranscriptSegment[] = [
+  {
+    id: 1,
+    lang: 'EN',
+    time: '00:00 – 00:35',
+    startSeconds: 0,
+    endSeconds: 35,
+    text: 'Good morning everyone. Today we are discussing speech recognition accuracy and tuning multilingual transcription for Kazakh, Russian, and English.',
+  },
+  {
+    id: 2,
+    lang: 'EN',
+    time: '00:36 – 01:20',
+    startSeconds: 36,
+    endSeconds: 80,
+    text: 'By configuring language prompts directly on audio files, we help the speech-to-text model refine recognition precision and preserve proper domain terminology.',
+  },
+  {
+    id: 3,
+    lang: 'EN',
+    time: '01:21 – 02:05',
+    startSeconds: 81,
+    endSeconds: 125,
+    text: 'All segments and timestamps remain synchronized with playback, providing clear validation of bilingual and multilingual audio tracks.',
+  },
+]
+
 export const INITIAL_BATCH_FILES: AudioFileItem[] = [
   {
     id: 'file-1',
@@ -114,6 +141,7 @@ export const INITIAL_BATCH_FILES: AudioFileItem[] = [
     durationSeconds: 225,
     status: 'completed',
     progress: 100,
+    language: 'auto',
     detectedLanguage: 'KZ/RU',
     segments: SAMPLE_TRANSCRIPT_1,
     rawText: SAMPLE_TRANSCRIPT_1.map((s) => s.text).join('\n\n'),
@@ -126,6 +154,7 @@ export const INITIAL_BATCH_FILES: AudioFileItem[] = [
     durationSeconds: 130,
     status: 'completed',
     progress: 100,
+    language: 'kk',
     detectedLanguage: 'KZ',
     segments: SAMPLE_TRANSCRIPT_KZ,
     rawText: SAMPLE_TRANSCRIPT_KZ.map((s) => s.text).join('\n\n'),
@@ -138,8 +167,10 @@ export const INITIAL_BATCH_FILES: AudioFileItem[] = [
     durationSeconds: 125,
     status: 'completed',
     progress: 100,
+    language: 'ru',
     detectedLanguage: 'RU',
     segments: SAMPLE_TRANSCRIPT_RU,
     rawText: SAMPLE_TRANSCRIPT_RU.map((s) => s.text).join('\n\n'),
   },
 ]
+
