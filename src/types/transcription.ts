@@ -10,26 +10,26 @@ export interface LanguageOption {
 export const TRANSCRIPTION_LANGUAGES: LanguageOption[] = [
   {
     code: 'auto',
-    label: 'Автоопределение',
-    shortLabel: 'AUTO',
+    label: 'Авто',
+    shortLabel: 'Авто',
     badgeClass: 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200/80 border-neutral-200',
   },
   {
-    code: 'kk',
-    label: 'Қазақша (KZ)',
-    shortLabel: 'KZ',
-    badgeClass: 'bg-sky-50 text-sky-700 hover:bg-sky-100 border-sky-200',
-  },
-  {
     code: 'ru',
-    label: 'Русский (RU)',
-    shortLabel: 'RU',
+    label: 'Русский',
+    shortLabel: 'Русский',
     badgeClass: 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-200',
   },
   {
+    code: 'kk',
+    label: 'Казахский',
+    shortLabel: 'Казахский',
+    badgeClass: 'bg-sky-50 text-sky-700 hover:bg-sky-100 border-sky-200',
+  },
+  {
     code: 'en',
-    label: 'English (EN)',
-    shortLabel: 'EN',
+    label: 'Английский',
+    shortLabel: 'Английский',
     badgeClass: 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200',
   },
 ]

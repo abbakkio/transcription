@@ -92,9 +92,9 @@ export default function App() {
 
     const langLabelMap: Record<TranscriptionLanguage, string> = {
       auto: 'Авто',
-      kk: 'Қазақша',
       ru: 'Русский',
-      en: 'English',
+      kk: 'Казахский',
+      en: 'Английский',
     }
     const langNotice = defaultLanguage !== 'auto' ? ` • Язык: ${langLabelMap[defaultLanguage]}` : ''
 

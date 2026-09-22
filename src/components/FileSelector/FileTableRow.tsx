@@ -6,6 +6,7 @@ import {
   ExclamationTriangleIcon,
   ChevronDownIcon,
   ArrowPathIcon,
+  CheckIcon,
 } from '@heroicons/react/24/outline'
 import {
   type AudioFileItem,
@@ -105,13 +106,9 @@ function LanguageBadge({
               }`}
             >
               <span>{opt.label}</span>
-              <span
-                className={`text-[10px] font-mono px-1 rounded ${
-                  opt.code === language ? 'bg-white/20 text-white' : 'text-neutral-400'
-                }`}
-              >
-                {opt.shortLabel}
-              </span>
+              {opt.code === language && (
+                <CheckIcon className="w-3.5 h-3.5 text-white stroke-[2.5]" />
+              )}
             </button>
           ))}
         </div>
