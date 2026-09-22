@@ -1,10 +1,18 @@
+import { useState, useRef, useEffect } from 'react'
 import {
   MusicalNoteIcon,
   ChevronRightIcon,
   XMarkIcon,
   ExclamationTriangleIcon,
+  ChevronDownIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline'
-import type { AudioFileItem, TranscriptionStatus } from '../../types/transcription'
+import {
+  type AudioFileItem,
+  type TranscriptionStatus,
+  type TranscriptionLanguage,
+  TRANSCRIPTION_LANGUAGES,
+} from '../../types/transcription'
 
 interface FileTableRowProps {
   file: AudioFileItem
@@ -12,10 +20,105 @@ interface FileTableRowProps {
   canRemove: boolean
   onSelect: (id: string) => void
   onRemove: (id: string) => void
+  onChangeLanguage?: (id: string, language: TranscriptionLanguage) => void
+  onRetranscribe?: (id: string) => void
 }
 
 const CIRCLE_RADIUS = 10
 const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS
+
+function LanguageBadge({
+  language,
+  onChange,
+  disabled,
+}: {
+  language: TranscriptionLanguage
+  onChange?: (lang: TranscriptionLanguage) => void
+  disabled?: boolean
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!isOpen) return
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isOpen])
+
+  const currentOption =
+    TRANSCRIPTION_LANGUAGES.find((l) => l.code === language) ?? TRANSCRIPTION_LANGUAGES[0]
+
+  return (
+    <div className="relative inline-block text-left" ref={menuRef}>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={(e) => {
+          e.stopPropagation()
+          if (!disabled) setIsOpen((prev) => !prev)
+        }}
+        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border transition-all cursor-pointer select-none ${currentOption.badgeClass} disabled:opacity-50 disabled:cursor-not-allowed`}
+        title={`Язык модели: ${currentOption.label}. Нажмите для смены`}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+      >
+        <span>{currentOption.shortLabel}</span>
+        <ChevronDownIcon className="w-2.5 h-2.5 opacity-60" />
+      </button>
+
+      {isOpen && (
+        <div
+          role="listbox"
+          aria-label="Выберите язык"
+          className="absolute left-0 mt-1 w-44 rounded-xl bg-white border border-neutral-200/90 shadow-lg py-1 z-30 animate-in fade-in"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="px-2.5 py-1 text-[10px] font-semibold text-neutral-400 uppercase tracking-wider border-b border-neutral-100">
+            Язык распознавания
+          </div>
+          {TRANSCRIPTION_LANGUAGES.map((opt) => (
+            <button
+              key={opt.code}
+              type="button"
+              role="option"
+              aria-selected={opt.code === language}
+              onClick={() => {
+                onChange?.(opt.code)
+                setIsOpen(false)
+              }}
+              className={`w-full flex items-center justify-between px-2.5 py-1.5 text-xs text-left transition-colors cursor-pointer ${
+                opt.code === language
+                  ? 'bg-neutral-900 text-white font-semibold'
+                  : 'text-neutral-700 hover:bg-neutral-100'
+              }`}
+            >
+              <span>{opt.label}</span>
+              <span
+                className={`text-[10px] font-mono px-1 rounded ${
+                  opt.code === language ? 'bg-white/20 text-white' : 'text-neutral-400'
+                }`}
+              >
+                {opt.shortLabel}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function StatusIndicator({
   status,
@@ -93,6 +196,8 @@ export function FileTableRow({
   canRemove,
   onSelect,
   onRemove,
+  onChangeLanguage,
+  onRetranscribe,
 }: FileTableRowProps) {
   return (
     <div
@@ -113,7 +218,7 @@ export function FileTableRow({
       }`}
     >
       <div className="hidden sm:grid sm:grid-cols-12 gap-4 px-4 py-3 items-center">
-        <div role="cell" className="col-span-6 flex items-center gap-3 min-w-0">
+        <div role="cell" className="col-span-5 flex items-center gap-3 min-w-0">
           <div
             className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
               isActive
@@ -137,11 +242,34 @@ export function FileTableRow({
           {file.duration}
         </div>
 
-        <div role="cell" className="col-span-2 font-mono text-xs text-neutral-500 tabular-nums">
+        <div role="cell" className="col-span-1 font-mono text-xs text-neutral-500 tabular-nums">
           {file.size}
         </div>
 
-        <div role="cell" className="col-span-2 flex items-center justify-end gap-2 pr-1">
+        <div role="cell" className="col-span-2 flex items-center gap-1.5">
+          <LanguageBadge
+            language={file.language}
+            onChange={(newLang) => onChangeLanguage?.(file.id, newLang)}
+            disabled={file.status === 'processing'}
+          />
+        </div>
+
+        <div role="cell" className="col-span-2 flex items-center justify-end gap-1.5 pr-1">
+          {file.status === 'completed' && onRetranscribe && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                onRetranscribe(file.id)
+              }}
+              className="text-neutral-400 hover:text-neutral-900 p-1.5 rounded-lg hover:bg-neutral-100 transition-all"
+              title="Перераспознать с выбранным языком"
+              aria-label="Перераспознать аудиозапись"
+            >
+              <ArrowPathIcon className="w-3.5 h-3.5" />
+            </button>
+          )}
+
           <StatusIndicator
             status={file.status}
             progress={file.progress}
@@ -202,8 +330,29 @@ export function FileTableRow({
           </div>
         </div>
 
-        <div className="flex items-center justify-between text-[11px] text-neutral-400 pl-9.5 font-mono">
-          <span>{file.duration} • {file.size}</span>
+        <div className="flex items-center justify-between text-[11px] text-neutral-500 pl-9.5">
+          <span className="font-mono text-neutral-400">{file.duration} • {file.size}</span>
+          <div className="flex items-center gap-1.5">
+            <LanguageBadge
+              language={file.language}
+              onChange={(newLang) => onChangeLanguage?.(file.id, newLang)}
+              disabled={file.status === 'processing'}
+            />
+            {file.status === 'completed' && onRetranscribe && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onRetranscribe(file.id)
+                }}
+                className="text-neutral-400 hover:text-neutral-900 p-1"
+                title="Перераспознать аудиозапись"
+                aria-label="Перераспознать аудиозапись"
+              >
+                <ArrowPathIcon className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

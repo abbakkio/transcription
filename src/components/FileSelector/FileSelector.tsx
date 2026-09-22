@@ -3,7 +3,7 @@ import {
   ArrowDownTrayIcon,
   PlusIcon,
 } from '@heroicons/react/24/outline'
-import type { AudioFileItem } from '../../types/transcription'
+import type { AudioFileItem, TranscriptionLanguage } from '../../types/transcription'
 import type { ScanResult } from '../../utils/folderScanner'
 import { FileTableRow } from './FileTableRow'
 import { CompactDropZone } from './CompactDropZone'
@@ -16,6 +16,8 @@ export interface FileSelectorProps {
   onAddFilesClick: () => void
   onDirectDropFiles?: (files: File[], scanInfo?: ScanResult) => void
   onRemoveFile: (id: string) => void
+  onChangeLanguage?: (id: string, language: TranscriptionLanguage) => void
+  onRetranscribe?: (id: string) => void
 }
 
 export function FileSelector({
@@ -26,6 +28,8 @@ export function FileSelector({
   onAddFilesClick,
   onDirectDropFiles,
   onRemoveFile,
+  onChangeLanguage,
+  onRetranscribe,
 }: FileSelectorProps) {
   const completedCount = files.filter((f) => f.status === 'completed').length
 
@@ -95,9 +99,10 @@ export function FileSelector({
           role="row"
           className="hidden sm:grid sm:grid-cols-12 gap-4 px-4 py-2.5 text-[11px] font-semibold text-neutral-400 uppercase tracking-wider border-b border-neutral-100 bg-neutral-50/70 border-l-4 border-l-transparent"
         >
-          <div role="columnheader" className="col-span-6">Аудиозапись</div>
+          <div role="columnheader" className="col-span-5">Аудиозапись</div>
           <div role="columnheader" className="col-span-2">Длительность</div>
-          <div role="columnheader" className="col-span-2">Размер</div>
+          <div role="columnheader" className="col-span-1">Размер</div>
+          <div role="columnheader" className="col-span-2">Язык модели</div>
           <div role="columnheader" className="col-span-2 text-right pr-2">Статус</div>
         </div>
 
@@ -110,6 +115,8 @@ export function FileSelector({
               canRemove={true}
               onSelect={onSelectFile}
               onRemove={onRemoveFile}
+              onChangeLanguage={onChangeLanguage}
+              onRetranscribe={onRetranscribe}
             />
           ))}
         </div>
