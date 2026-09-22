@@ -14,8 +14,12 @@ import {
   SAMPLE_TRANSCRIPT_EN,
 } from './data/sampleTranscript'
 import { exportAllTranscriptsAsZip } from './utils/exportZip'
-import type { AudioFileItem, TranscriptionLanguage } from './types/transcription'
 import type { ScanResult } from './utils/folderScanner'
+import {
+  type AudioFileItem,
+  type TranscriptionLanguage,
+  TRANSCRIPTION_LANGUAGES,
+} from './types/transcription'
 
 export default function App() {
   const [files, setFiles] = useState<AudioFileItem[]>(INITIAL_BATCH_FILES)
@@ -189,11 +193,29 @@ export default function App() {
           }
           timeoutRef.current = setTimeout(() => {
             setFiles((current) =>
-              current.map((item) =>
-                processIds.has(item.id)
-                  ? { ...item, status: 'completed', progress: 100 }
-                  : item,
-              ),
+              current.map((item) => {
+                if (!processIds.has(item.id)) return item
+                const lang = item.language
+                const updatedSegments =
+                  lang === 'kk'
+                    ? SAMPLE_TRANSCRIPT_KZ
+                    : lang === 'ru'
+                      ? SAMPLE_TRANSCRIPT_RU
+                      : lang === 'en'
+                        ? SAMPLE_TRANSCRIPT_EN
+                        : SAMPLE_TRANSCRIPT_1
+                const detected =
+                  lang === 'kk' ? 'KZ' : lang === 'ru' ? 'RU' : lang === 'en' ? 'EN' : 'KZ/RU'
+
+                return {
+                  ...item,
+                  status: 'completed',
+                  progress: 100,
+                  detectedLanguage: detected,
+                  segments: updatedSegments,
+                  rawText: updatedSegments.map((s) => s.text).join('\n\n'),
+                }
+              }),
             )
             setIsTranscribing(false)
             setOverallProgress(100)
@@ -217,6 +239,46 @@ export default function App() {
         return nextProgress
       })
     }, 280)
+  }
+
+  const handleChangeFileLanguage = (id: string, newLanguage: TranscriptionLanguage) => {
+    const target = files.find((f) => f.id === id)
+    if (!target) return
+
+    setFiles((prev) =>
+      prev.map((f) => (f.id === id ? { ...f, language: newLanguage } : f)),
+    )
+
+    const langLabel =
+      TRANSCRIPTION_LANGUAGES.find((l) => l.code === newLanguage)?.label ?? newLanguage
+
+    if (target.status === 'completed') {
+      toastIdRef.current += 1
+      setToastMessage({
+        id: `toast-${toastIdRef.current}`,
+        title: `Язык изменен: ${langLabel}`,
+        detail: `Нажмите "Перераспознать", чтобы обновить результат для "${target.name}"`,
+        type: 'info',
+      })
+    }
+  }
+
+  const handleRetranscribeFile = (id: string) => {
+    const target = files.find((f) => f.id === id)
+    if (!target || isTranscribing) return
+
+    const langLabel =
+      TRANSCRIPTION_LANGUAGES.find((l) => l.code === target.language)?.label ?? target.language
+
+    toastIdRef.current += 1
+    setToastMessage({
+      id: `toast-${toastIdRef.current}`,
+      title: `Повторное распознавание: ${target.name}`,
+      detail: `Параметр модели: ${langLabel}`,
+      type: 'info',
+    })
+
+    runTranscriptionProcess([target], files)
   }
 
   const handleExportZip = () => {
@@ -244,6 +306,8 @@ export default function App() {
           onAddFilesClick={() => setIsUploadModalOpen(true)}
           onDirectDropFiles={handleAddBatchFiles}
           onRemoveFile={handleRemoveFile}
+          onChangeLanguage={handleChangeFileLanguage}
+          onRetranscribe={handleRetranscribeFile}
         />
 
         {activeFile ? (
@@ -258,6 +322,7 @@ export default function App() {
               key={`viewer-${activeFile.id}`}
               file={activeFile}
               onSeek={(seconds) => setSeekTarget({ seconds, timestamp: Date.now() })}
+              onRetranscribe={() => handleRetranscribeFile(activeFile.id)}
             />
           </div>
         ) : (

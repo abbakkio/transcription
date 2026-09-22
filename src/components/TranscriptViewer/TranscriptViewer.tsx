@@ -5,20 +5,29 @@ import {
   ClipboardDocumentIcon,
   ClipboardDocumentCheckIcon,
   ArrowDownTrayIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline'
-import type { AudioFileItem } from '../../types/transcription'
+import {
+  type AudioFileItem,
+  TRANSCRIPTION_LANGUAGES,
+} from '../../types/transcription'
 import { downloadSingleTranscript } from '../../utils/exportZip'
 import { getTranscriptText } from '../../utils/audioFiles'
 
 interface TranscriptViewerProps {
   file: AudioFileItem
   onSeek?: (seconds: number) => void
+  onRetranscribe?: () => void
 }
 
 const ACTION_BTN_CLASS =
   'w-7.5 h-7.5 sm:w-8 sm:h-8 rounded-lg border border-neutral-200 hover:bg-neutral-50 text-neutral-700 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 disabled:opacity-50 disabled:cursor-not-allowed'
 
-export function TranscriptViewer({ file, onSeek }: TranscriptViewerProps) {
+export function TranscriptViewer({
+  file,
+  onSeek,
+  onRetranscribe,
+}: TranscriptViewerProps) {
   const [copied, setCopied] = useState(false)
   const [viewMode, setViewMode] = useState<'raw' | 'timestamps'>('raw')
 
@@ -65,9 +74,18 @@ export function TranscriptViewer({ file, onSeek }: TranscriptViewerProps) {
               <span className="hidden sm:inline">Расшифровка</span>
               <span className="sm:hidden">Текст</span>
             </h2>
-            <p className="text-[11px] text-neutral-400 mt-1 truncate">
-              {wordCount} слов
-            </p>
+            <div className="flex items-center gap-1.5 mt-1 truncate">
+              <span className="text-[11px] text-neutral-400">
+                {wordCount} слов
+              </span>
+              <span className="text-[10px] text-neutral-300">•</span>
+              <span
+                className="text-[10px] font-mono px-1.5 py-0.2 rounded font-semibold border bg-neutral-50 text-neutral-600 border-neutral-200"
+                title={`Язык распознавания модели: ${TRANSCRIPTION_LANGUAGES.find((l) => l.code === file.language)?.label ?? 'Авто'}`}
+              >
+                {TRANSCRIPTION_LANGUAGES.find((l) => l.code === file.language)?.shortLabel ?? 'AUTO'}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -106,6 +124,21 @@ export function TranscriptViewer({ file, onSeek }: TranscriptViewerProps) {
               <span className="xl:hidden">Таймкоды</span>
             </button>
           </div>
+
+          {onRetranscribe && (
+            <button
+              type="button"
+              onClick={onRetranscribe}
+              disabled={file.status === 'processing'}
+              className={ACTION_BTN_CLASS}
+              title={`Перераспознать с параметром языка ${TRANSCRIPTION_LANGUAGES.find((l) => l.code === file.language)?.label ?? 'Авто'}`}
+              aria-label="Перераспознать аудиозапись"
+            >
+              <ArrowPathIcon
+                className={`w-4 h-4 text-neutral-600 ${file.status === 'processing' ? 'animate-spin text-neutral-900' : ''}`}
+              />
+            </button>
+          )}
 
           <button
             type="button"
