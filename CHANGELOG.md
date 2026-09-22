@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-09-22
+
+### Added
+- **Model Language Selection**: Target language selector (`Авто`, `Русский`, `Казахский`, `Английский`) to tune speech recognition precision.
+- **Batch Upload Language Preset**: Staged 4-way language segmented toggle in `BatchDropzoneModal` so newly imported files inherit the target language.
+- **Inline Language Badges**: Quick-access dropdown pills in the audio queue table (`FileTableRow`) allowing 1-click language overrides per file.
+- **Re-transcription Workflow**: Dedicated re-run action in both table rows and `TranscriptViewer` to re-process audio with updated language parameters.
+- **English Demo Transcript**: Added realistic English presentation speech model transcript to validate multilingual audio output.
+
+### Fixed
+- **Dropdown Clipping**: Removed `overflow-hidden` on the file table and added smart upward positioning (`dropup`) for bottom rows to prevent language menus being truncated.
+- **Unified Dark Gray Borders**: Standardized all language badge borders to a uniform dark gray (`border-neutral-400`), replacing multi-colored pastels.
+
 ## [0.1.0] - 2026-09-21
 
 ### Added
